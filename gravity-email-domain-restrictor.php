@@ -1,13 +1,12 @@
 <?php
 /**
  * Plugin Name: Gravity Forms Email Domain Restrictor
- * Plugin URI: https://yourwebsite.com
+ * Plugin URI: https://morganwebdevelopment.com
  * Description: Adds a checkbox to Gravity Forms email fields to restrict specific domains like Gmail and Outlook.
  * Version: 1.0
- * Author: Your Name
- * Author URI: https://yourwebsite.com
+ * Author: Morgan Web Development
+ * Author URI: https://morganwebdevelopment.com
  * Text Domain: gravity-email-domain-restrictor
- * Domain Path: /languages
  */
 
 // Prevent direct access
