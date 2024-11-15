@@ -14,16 +14,16 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-// Define plugin constants
-define('GF_EMAIL_RESTRICTOR_VERSION', '1.0');
-define('GF_EMAIL_RESTRICTOR_PLUGIN_DIR', plugin_dir_path(__FILE__));
-define('GF_EMAIL_RESTRICTOR_PLUGIN_URL', plugin_dir_url(__FILE__));
-
-// Include necessary files
-require_once GF_EMAIL_RESTRICTOR_PLUGIN_DIR . 'includes/admin-settings.php';
-require_once GF_EMAIL_RESTRICTOR_PLUGIN_DIR . 'includes/field-validation.php';
-
-// Load text domain for translations
+// Ensure Gravity Forms is active
 add_action('plugins_loaded', function () {
-    load_plugin_textdomain('gravity-email-domain-restrictor', false, dirname(plugin_basename(__FILE__)) . '/languages');
+    if (!class_exists('GFForms')) {
+        add_action('admin_notices', function () {
+            echo '<div class="error"><p>Gravity Forms Email Domain Restrictor requires Gravity Forms to be installed and active.</p></div>';
+        });
+        return;
+    }
+
+    // Load necessary files
+    require_once plugin_dir_path(__FILE__) . 'includes/admin-settings.php';
+    require_once plugin_dir_path(__FILE__) . 'includes/field-validation.php';
 });
