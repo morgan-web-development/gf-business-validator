@@ -1,29 +1,67 @@
 <?php
-/**
- * Plugin Name: Gravity Forms Email Domain Restrictor
- * Plugin URI: https://morganwebdevelopment.com
- * Description: Adds a checkbox to Gravity Forms email fields to restrict specific domains like Gmail and Outlook.
- * Version: 1.0
- * Author: Morgan Web Development
- * Author URI: https://morganwebdevelopment.com
- * Text Domain: gravity-email-domain-restrictor
- */
+/*
+Plugin Name: Gravity Forms Email Restriction
+Description: Adds an option to Gravity Forms email fields to restrict Gmail and Outlook domains.
+Version: 1.0
+Author: Morgan Web Development
+*/
 
-// Prevent direct access
-if (!defined('ABSPATH')) {
+// Exit if accessed directly.
+if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-// Ensure Gravity Forms is active
-add_action('plugins_loaded', function () {
-    if (!class_exists('GFForms')) {
-        add_action('admin_notices', function () {
-            echo '<div class="error"><p>Gravity Forms Email Domain Restrictor requires Gravity Forms to be installed and active.</p></div>';
-        });
-        return;
+// Add the checkbox option to the email field settings.
+add_action( 'gform_field_advanced_settings', function( $position, $form_id ) {
+    if ( $position === 50 ) {
+        ?>
+        <li class="restrict-email-domains-setting field_setting">
+            <input type="checkbox" id="restrict_email_domains" onclick="SetFieldProperty('restrictEmailDomains', this.checked);" />
+            <label for="restrict_email_domains" class="inline">
+                <?php esc_html_e( 'Restrict Gmail and Outlook domains', 'gravity-forms-email-restriction' ); ?>
+            </label>
+        </li>
+        <?php
     }
+}, 10, 2 );
 
-    // Load necessary files
-    require_once plugin_dir_path(__FILE__) . 'includes/admin-settings.php';
-    require_once plugin_dir_path(__FILE__) . 'includes/field-validation.php';
+// Add the setting to the field properties.
+add_filter( 'gform_field_content', function( $content, $field ) {
+    if ( $field->type === 'email' && rgar( $field, 'restrictEmailDomains' ) ) {
+        $content .= '<input type="hidden" name="restrict_email_domains" value="1" />';
+    }
+    return $content;
+}, 10, 2 );
+
+// Enqueue the Gravity Forms script for handling the checkbox.
+add_action( 'gform_editor_js', function() {
+    ?>
+    <script type="text/javascript">
+        jQuery(document).ready(function() {
+            // Load the restrictEmailDomains property when the field is loaded.
+            fieldSettings.email += ', .restrict-email-domains-setting';
+
+            // Update the checkbox value when the field is selected.
+            jQuery(document).on('gform_load_field_settings', function(event, field) {
+                jQuery('#restrict_email_domains').prop('checked', field['restrictEmailDomains'] === true);
+            });
+        });
+    </script>
+    <?php
 });
+
+// Add server-side validation to restrict Gmail and Outlook domains.
+add_filter( 'gform_field_validation', function( $result, $value, $form, $field ) {
+    if ( $field->type === 'email' && rgar( $field, 'restrictEmailDomains' ) ) {
+        $restricted_domains = [ 'gmail.com', 'outlook.com' ];
+        $email_domain = substr( strrchr( $value, '@' ), 1 );
+
+        if ( in_array( $email_domain, $restricted_domains, true ) ) {
+            $result['is_valid'] = false;
+            $result['message']  = __( 'Emails from Gmail and Outlook domains are not allowed.', 'gravity-forms-email-restriction' );
+        }
+    }
+    return $result;
+}, 10, 4 );
+``
+
