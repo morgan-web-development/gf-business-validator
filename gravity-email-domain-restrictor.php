@@ -11,6 +11,18 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+// Check if Gravity Forms is active.
+if ( ! class_exists( 'GFForms' ) ) {
+    add_action( 'admin_notices', function() {
+        ?>
+        <div class="error notice">
+            <p><?php esc_html_e( 'Gravity Forms Email Restriction requires Gravity Forms to be installed and activated.', 'gravity-forms-email-restriction' ); ?></p>
+        </div>
+        <?php
+    } );
+    return;
+}
+
 // Add the checkbox option to the email field settings.
 add_action( 'gform_field_advanced_settings', function( $position, $form_id ) {
     if ( $position === 50 ) {
@@ -53,7 +65,7 @@ add_action( 'gform_editor_js', function() {
 // Add server-side validation to restrict Gmail and Outlook domains.
 add_filter( 'gform_field_validation', function( $result, $value, $form, $field ) {
     if ( $field->type === 'email' && rgar( $field, 'restrictEmailDomains' ) ) {
-        $restricted_domains = [ 'gmail.com', 'outlook.com' ];
+        $restricted_domains = [ 'gmail.com', 'outlook.com', 'yahoo.com', 'hotmail.com' ];
         $email_domain = substr( strrchr( $value, '@' ), 1 );
 
         if ( in_array( $email_domain, $restricted_domains, true ) ) {
@@ -63,5 +75,3 @@ add_filter( 'gform_field_validation', function( $result, $value, $form, $field )
     }
     return $result;
 }, 10, 4 );
-``
-
